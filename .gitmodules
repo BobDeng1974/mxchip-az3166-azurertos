@@ -1,0 +1,11 @@
+[submodule "MXChip/AZ3166/lib/azurertos/threadx"]
+	path = MXChip/AZ3166/lib/azurertos/threadx
+	url = git@github.com:azurertos/threadx.git
+	shallow = true
+[submodule "MXChip/AZ3166/lib/azurertos/netx-duo"]
+	path = MXChip/AZ3166/lib/azurertos/netx-duo
+	url = git@github.com:azurertos/netx-duo.git
+	shallow = true
+[submodule "MXChip/AZ3166/lib/azurertos/filex"]
+	path = MXChip/AZ3166/lib/azurertos/filex
+	url = git@github.com:azurertos/filex.git
