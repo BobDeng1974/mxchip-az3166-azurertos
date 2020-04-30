@@ -48,9 +48,21 @@ We develop and build everything within WSL2.
     ```bash
     sudo apt install -y ninja-build
 
+* Git clone the repo:
+
+    ```bash
+    git clone https://github.com/liydu/mxchip-az3166-azurertos.git
+
+    cd mxchip-az3166-azurertos
+
+    git submodule update --init
+    ```
+
 * Go to `MXChip/AZ3166` and build:
 
   ```bash
+  cd MXChip/AZ3166
+
   cmake -Bbuild -GNinja -DSTM32_CHIP=STM32F407RG -DCMAKE_BUILD_TYPE=Debug -DTOOLCHAIN_PREFIX=/home/liydu/tools/gcc-arm-none-eabi-9-2019-q4-major
 
   cmake --build ./build
@@ -73,10 +85,9 @@ We develop and build everything within WSL2.
 * In Windows, launch **openocd**:
 
     ```cmd
-    openocd -c "bindto 0.0.0.0" -s "C:\Program Files(x86)\OpenOCD-20200310-0.10.0\share\openocd\script
-    s" -f interface/stlink.cfg -f target/stm32f4x.cfg
+    openocd -c "bindto 0.0.0.0" -s "C:\Program Files(x86)\OpenOCD-20200310-0.10.0\share\openocd\scripts" -f interface/stlink.cfg -f target/stm32f4x.cfg
     ```
 
-* `F5` debug in VS Code.
+* `F5` debug in VS Code. Then select `create_threads`.
 
-    ![Debugging](./debugging.png)
+    ![Debugging](./image/debugging.png)
