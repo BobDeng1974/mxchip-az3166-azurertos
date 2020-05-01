@@ -1,5 +1,6 @@
 # Build
 build
+ninja-build.log
 
 # Prerequisites
 *.d

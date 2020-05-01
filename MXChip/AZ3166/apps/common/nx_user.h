@@ -5,7 +5,10 @@
 // #define TX_MAX_PRIORITIES                       32  
 // #endif
 
+// Disable the weird includes in some of the source files
+#ifndef NX_DISABLE_INCLUDE_SOURCE_CODE
 #define NX_DISABLE_INCLUDE_SOURCE_CODE
+#endif
 
 extern UINT nx_rand16( void );
 #define NX_RAND                         nx_rand16

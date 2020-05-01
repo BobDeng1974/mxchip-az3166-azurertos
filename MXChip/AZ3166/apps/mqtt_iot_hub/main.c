@@ -30,21 +30,21 @@
 #include <wwd_network.h>
 
 /* Include the sample for Azure SDK Digitaltwin.  */
-// extern void iothub_telemetry(void);
+extern void mqtt_iothub_run(void);
 
-#define STR_EXPAND(tok) #tok
-#define STR(tok) STR_EXPAND(tok)
+#define STR_EXPAND(x) #x
+#define STR(x) STR_EXPAND(x)
 
 /* Define the default wifi ssid and password. The user can override this 
    via -D command line option or via project settings.  */
 #ifndef WIFI_SSID
-// #error "Symbol WIFI_SSID must be defined."
-#define WIFI_SSID                                       "Mi10"
+#error "Symbol WIFI_SSID must be defined."
+// #define WIFI_SSID                                       "A@Da"
 #endif /* WIFI_SSID  */
 
 #ifndef WIFI_PASSWORD
-// #error "Symbol WIFI_PASSWORD must be defined."
-#define WIFI_PASSWORD                                   "19860206"
+#error "Symbol WIFI_PASSWORD must be defined."
+// #define WIFI_PASSWORD                                   "y7nh5s4n"
 #endif /* WIFI_PASSWORD  */
 
 /* WIFI Security, the security types are defined in wwwd_constants.h.  */
@@ -82,7 +82,6 @@ void (*platform_driver_get())(NX_IP_DRIVER *);
 /* Define main entry point.  */
 int main(void)
 {
-
     /* Enable execution profile.  */
     CoreDebug -> DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT -> CTRL |= DWT_CTRL_CYCCNTENA_Msk;
@@ -92,6 +91,8 @@ int main(void)
     
     /* Enter the ThreadX kernel.  */
     tx_kernel_enter();
+
+    return -1;
 }
 
 /* Define what the initial system looks like.  */
@@ -115,7 +116,7 @@ UINT  status;
 /* Define THREADX Azure SDK helper thread entry.  */
 void threadx_azure_sdk_helper_thread_entry(ULONG parameter)
 {
-    // iothub_telemetry();
+    mqtt_iothub_run();
 }
 
 /* Get the network driver.  */
@@ -126,7 +127,7 @@ VOID (*platform_driver_get())(NX_IP_DRIVER *)
 
 static const wiced_ssid_t wifi_ssid =
 {
-    .length = sizeof(STR(WIFI_SSID))-1,
+    .length = sizeof(STR(WIFI_SSID)) - 1,
     .value  = STR(WIFI_SSID),
 };
 

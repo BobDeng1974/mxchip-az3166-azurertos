@@ -55,6 +55,7 @@ target_compile_definitions(${PROJECT_NAME}
     PRIVATE
         WICED_CUSTOM_NX_USER_H
         # TX_ENABLE_EXECUTION_CHANGE_NOTIFY
+        wifi_firmware_image=resources_firmware_DIR_43362_DIR_43362A2_bin
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -76,5 +77,4 @@ target_link_libraries(${PROJECT_NAME}
     PRIVATE
         threadx
         netxduo
-        filex
 )

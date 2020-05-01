@@ -9,8 +9,9 @@ set(CMAKE_EXECUTABLE_SUFFIX ".elf")
 # Create the executable
 add_executable(${PROJECT_NAME}
     main.c
-    # iothub_telemetry.c
+    mqtt_iothub.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../common/board_init.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../common/wifi_init.c
 )
 
 # add_dependencies(mqtt_iot_hub theadx netxduo stm32f4xx cyw43362)
@@ -18,10 +19,10 @@ add_executable(${PROJECT_NAME}
 # Preprocessor marcos
 target_compile_definitions(${PROJECT_NAME}
     PUBLIC
-        # USE_COM_PORT
+        USE_COM_PORT
         # TX_ENABLE_EXECUTION_CHANGE_NOTIFY
-        # WIFI_SSID=${WIFI_SSID}
-        # WIFI_PASSWORD=${WIFI_PASSWORD}
+        WIFI_SSID=Mi10
+        WIFI_PASSWORD=19860206
         WIFI_SECURITY=WICED_SECURITY_WPA2_MIXED_PSK
         WIFI_COUNTRY=WICED_COUNTRY_CHINA
 )
