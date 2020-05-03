@@ -29,7 +29,7 @@
 
 * Modify the `STM32Cube_DIR` in `FindCMSIS.cmake` that points to your STM32Cube package. FOr STM32F4, it's around line 55.
 
-* Copy `misc/startup_stm32f4xx.s` to `{where}/STM32Cube_FW_F4_V1.25.0/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/gcc/` and rename it to the STM32_CHIP name. For example, `startup_stm32f407rx.s`.
+* Copy `misc/startup_stm32f412rx.s` to `{where}/STM32Cube_FW_F4_V1.25.0/Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/gcc/` and overwrite the original file.
 
 ## Build
 
@@ -38,6 +38,10 @@ We develop and build everything within WSL2.
 * Launch WSL2 command line.
 
 * Download and untar [ARM GCC in Linux](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads).
+
+    ```bash
+    untar xvjf ./gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 ~/tools/.
+    ```
 
 * Install Ninja:
 
@@ -48,7 +52,7 @@ We develop and build everything within WSL2.
     ```bash
     sudo apt install -y ninja-build
 
-* Git clone the repo:
+* Git clone the repo and all submodules:
 
     ```bash
     git clone https://github.com/liydu/mxchip-az3166-azurertos.git
@@ -63,7 +67,7 @@ We develop and build everything within WSL2.
   ```bash
   cd MXChip/AZ3166
 
-  cmake -Bbuild -GNinja -DSTM32_CHIP=STM32F407RG -DCMAKE_BUILD_TYPE=Debug -DTOOLCHAIN_PREFIX=/home/liydu/tools/gcc-arm-none-eabi-9-2019-q4-major
+  cmake -Bbuild -GNinja -DSTM32_CHIP=STM32F412RG -DCMAKE_BUILD_TYPE=Debug -DTOOLCHAIN_PREFIX=/home/liydu/tools/gcc-arm-none-eabi-9-2019-q4-major
 
   cmake --build ./build
   ```

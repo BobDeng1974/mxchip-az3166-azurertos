@@ -15,6 +15,8 @@ void mqtt_iothub_run(void)
 {
     int time_counter = 0;
 
+    printf("Enter mqtt_iothub_run().");
+
     if (platform_init() != 0)
     {
         (void)printf("Failed to initialize platform.\r\n");

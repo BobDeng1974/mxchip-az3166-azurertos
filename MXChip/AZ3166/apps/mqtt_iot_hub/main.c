@@ -127,7 +127,7 @@ VOID (*platform_driver_get())(NX_IP_DRIVER *)
 
 static const wiced_ssid_t wifi_ssid =
 {
-    .length = sizeof(STR(WIFI_SSID)) - 1,
+    .length = sizeof(STR(WIFI_SSID))-1,
     .value  = STR(WIFI_SSID),
 };
 
@@ -147,7 +147,7 @@ UINT wifi_network_join(void *pools)
 
     /* Attempt to join the Wi-Fi network.  */
     printf("Joining: %s\r\n", STR(WIFI_SSID));
-    while (wwd_wifi_join(&wifi_ssid, WIFI_SECURITY, (uint8_t*)STR(WIFI_PASSWORD), sizeof(STR(WIFI_PASSWORD)) - 1, NULL, WWD_STA_INTERFACE) != WWD_SUCCESS)
+    while (wwd_wifi_join(&wifi_ssid, WIFI_SECURITY, (uint8_t*)STR(WIFI_PASSWORD), sizeof(STR(WIFI_PASSWORD))-1, NULL, WWD_STA_INTERFACE) != WWD_SUCCESS)
     {
         printf("Failed to join: %s ... retrying\r\n", STR(WIFI_SSID));
     }

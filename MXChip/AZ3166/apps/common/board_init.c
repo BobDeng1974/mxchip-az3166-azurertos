@@ -9,7 +9,6 @@ UART_HandleTypeDef UartHandle;
 /* Define prototypes.   */
 extern VOID demo_thread_entry(ULONG thread_input);
 
-
 /**
   * @brief  System Clock Configuration
   *         The system Clock is configured as follow : 
@@ -33,62 +32,68 @@ extern VOID demo_thread_entry(ULONG thread_input);
   */
 static void SystemClock_Config(void)
 {
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  HAL_StatusTypeDef ret = HAL_OK;
+    RCC_ClkInitTypeDef RCC_ClkInitStruct;
+    RCC_OscInitTypeDef RCC_OscInitStruct;
+    HAL_StatusTypeDef ret = HAL_OK;
 
-  /* Enable Power Control clock */
-  __HAL_RCC_PWR_CLK_ENABLE();
+    /* Enable Power Control clock */
+    __HAL_RCC_PWR_CLK_ENABLE();
 
-  /* The voltage scaling allows optimizing the power consumption when the device is 
+    /* The voltage scaling allows optimizing the power consumption when the device is 
      clocked below the maximum system frequency, to update the voltage scaling value 
      regarding system frequency refer to product datasheet.  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
-  /* Enable HSE Oscillator and activate PLL with HSE as source */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_LSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 13;
-  RCC_OscInitStruct.PLL.PLLN = 96;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 4;
-  RCC_OscInitStruct.PLL.PLLR = 2;
-  ret = HAL_RCC_OscConfig(&RCC_OscInitStruct);
-  
-  if(ret != HAL_OK)
-  {
-    while(1) { ; } 
-  }
+    /* Enable HSE Oscillator and activate PLL with HSE as source */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE | RCC_OSCILLATORTYPE_LSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM = 13;
+    RCC_OscInitStruct.PLL.PLLN = 96;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 4;
+    RCC_OscInitStruct.PLL.PLLR = 2;
+    ret = HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
-  /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
+    if (ret != HAL_OK)
+    {
+        while (1)
+        {
+            ;
+        }
+    }
+
+    /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
      clocks dividers */
-  RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;  
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;  
-  ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3);
-  if(ret != HAL_OK)
-  {
-    while(1) { ; }  
-  }
+    RCC_ClkInitStruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+    ret = HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_3);
+    if (ret != HAL_OK)
+    {
+        while (1)
+        {
+            ;
+        }
+    }
 }
 
 VOID hardware_setup(void)
 {
 
-GPIO_InitTypeDef     gpio_init_structure;
-TIM_HandleTypeDef    timer_handle;
-TIM_OC_InitTypeDef   channel_config;
+    GPIO_InitTypeDef gpio_init_structure;
+    TIM_HandleTypeDef timer_handle;
+    TIM_OC_InitTypeDef channel_config;
 
     /* Initialize STM32F412 HAL library.  */
     HAL_Init();
 
     /* Configure the system clock to 96 MHz.  */
-    SystemClock_Config(); 
+    SystemClock_Config();
 
     /* Enable GPIOA clock.  */
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -97,14 +102,14 @@ TIM_OC_InitTypeDef   channel_config;
     /* Enable USART6 clock.  */
     __HAL_RCC_USART6_CLK_ENABLE();
 
-    UartHandle.Init.BaudRate       = 115200;
-    UartHandle.Init.WordLength     = UART_WORDLENGTH_8B;
-    UartHandle.Init.StopBits       = UART_STOPBITS_1;
-    UartHandle.Init.Parity         = UART_PARITY_NONE;
-    UartHandle.Init.HwFlowCtl      = UART_HWCONTROL_NONE;
-    UartHandle.Init.Mode           = UART_MODE_TX_RX;
-    UartHandle.Init.OverSampling   = UART_OVERSAMPLING_16;
     UartHandle.Instance = USART6;
+    UartHandle.Init.BaudRate = 115200;
+    UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+    UartHandle.Init.StopBits = UART_STOPBITS_1;
+    UartHandle.Init.Parity = UART_PARITY_NONE;
+    UartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    UartHandle.Init.Mode = UART_MODE_TX_RX;
+    UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
 
     /* Configure USART pins as alternate function.  */
     gpio_init_structure.Pin = GPIO_PIN_11 | GPIO_PIN_12;
@@ -113,7 +118,7 @@ TIM_OC_InitTypeDef   channel_config;
     gpio_init_structure.Pull = GPIO_NOPULL;
     gpio_init_structure.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(GPIOA, &gpio_init_structure);
-    
+
     /* USART configuration.  */
     HAL_UART_Init(&UartHandle);
 #endif
@@ -143,46 +148,46 @@ TIM_OC_InitTypeDef   channel_config;
     gpio_init_structure.Speed = GPIO_SPEED_FREQ_LOW;
     gpio_init_structure.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &gpio_init_structure);
-    
+
     /* Enable interrupt.  */
     HAL_NVIC_SetPriority(EXTI4_IRQn, 0xE, 0xE);
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0xE, 0xE);
     HAL_NVIC_EnableIRQ(EXTI4_IRQn);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-    
+
     /* Enable TIM2 clock.  */
     __HAL_RCC_TIM2_CLK_ENABLE();
-    
+
     /* Enable TIM3 clock.  */
     __HAL_RCC_TIM3_CLK_ENABLE();
-    
-    timer_handle.Instance               = TIM2;
-    timer_handle.Init.Prescaler         = 45;
-    timer_handle.Init.Period            = 2047;
-    timer_handle.Init.ClockDivision     = 0;
-    timer_handle.Init.CounterMode       = TIM_COUNTERMODE_UP;
+
+    timer_handle.Instance = TIM2;
+    timer_handle.Init.Prescaler = 45;
+    timer_handle.Init.Period = 2047;
+    timer_handle.Init.ClockDivision = 0;
+    timer_handle.Init.CounterMode = TIM_COUNTERMODE_UP;
     timer_handle.Init.RepetitionCounter = 0;
     timer_handle.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
     HAL_TIM_PWM_Init(&timer_handle);
-    
-    channel_config.OCMode               = TIM_OCMODE_PWM1;
-    channel_config.OCPolarity           = TIM_OCPOLARITY_HIGH;
-    channel_config.OCFastMode           = TIM_OCFAST_DISABLE;
-    channel_config.OCNPolarity          = TIM_OCNPOLARITY_HIGH;
-    channel_config.OCNIdleState         = TIM_OCNIDLESTATE_RESET;
-    channel_config.OCIdleState          = TIM_OCIDLESTATE_RESET;
-    channel_config.Pulse                = 0;
+
+    channel_config.OCMode = TIM_OCMODE_PWM1;
+    channel_config.OCPolarity = TIM_OCPOLARITY_HIGH;
+    channel_config.OCFastMode = TIM_OCFAST_DISABLE;
+    channel_config.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+    channel_config.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+    channel_config.OCIdleState = TIM_OCIDLESTATE_RESET;
+    channel_config.Pulse = 0;
 
     HAL_TIM_PWM_ConfigChannel(&timer_handle, &channel_config, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&timer_handle, TIM_CHANNEL_2);
 
-    timer_handle.Instance               = TIM3;
+    timer_handle.Instance = TIM3;
     HAL_TIM_PWM_Init(&timer_handle);
     HAL_TIM_PWM_ConfigChannel(&timer_handle, &channel_config, TIM_CHANNEL_1);
     HAL_TIM_PWM_Start(&timer_handle, TIM_CHANNEL_1);
     HAL_TIM_PWM_ConfigChannel(&timer_handle, &channel_config, TIM_CHANNEL_2);
     HAL_TIM_PWM_Start(&timer_handle, TIM_CHANNEL_2);
-    
+
     /* Configure RGB LED pins.  */
     gpio_init_structure.Pin = GPIO_PIN_4;
     gpio_init_structure.Mode = GPIO_MODE_AF_PP;
@@ -193,9 +198,8 @@ TIM_OC_InitTypeDef   channel_config;
     gpio_init_structure.Pin = GPIO_PIN_7;
     HAL_GPIO_Init(GPIOC, &gpio_init_structure);
     gpio_init_structure.Pin = GPIO_PIN_3;
-    gpio_init_structure.Alternate = GPIO_AF1_TIM2;   
+    gpio_init_structure.Alternate = GPIO_AF1_TIM2;
     HAL_GPIO_Init(GPIOB, &gpio_init_structure);
-
 }
 #ifdef USE_COM_PORT
 #if (defined(__ICCARM__))
@@ -203,36 +207,36 @@ size_t __write(int handle, const unsigned char *buf, size_t bufSize)
 {
 
     /* Check for the command to flush all handles */
-    if (handle == -1) 
-    {    
-        return 0;  
-    }    
-    /* Check for stdout and stderr      (only necessary if FILE descriptors are enabled.) */  
-    if (handle != 1 && handle != 2)  
-    {    
-        return -1;  
-    }   
+    if (handle == -1)
+    {
+        return 0;
+    }
+    /* Check for stdout and stderr      (only necessary if FILE descriptors are enabled.) */
+    if (handle != 1 && handle != 2)
+    {
+        return -1;
+    }
 
-    if(HAL_UART_Transmit(&UartHandle, (uint8_t*)buf, bufSize, 5000) != HAL_OK)
-    {    
-        return -1;  
-    }    
+    if (HAL_UART_Transmit(&UartHandle, (uint8_t *)buf, bufSize, 5000) != HAL_OK)
+    {
+        return -1;
+    }
 
     return bufSize;
 }
 
 size_t __read(int handle, unsigned char *buf, size_t bufSize)
-{  
+{
 
-    /* Check for stdin      (only necessary if FILE descriptors are enabled) */ 
-    if (handle != 0)  
-    {    
-        return -1;  
-    }   
+    /* Check for stdin      (only necessary if FILE descriptors are enabled) */
+    if (handle != 0)
+    {
+        return -1;
+    }
 
-    if(HAL_UART_Receive(&UartHandle, (uint8_t *)buf, bufSize, 0x10000000) != HAL_OK)
-    {    
-        return -1;  
+    if (HAL_UART_Receive(&UartHandle, (uint8_t *)buf, bufSize, 0x10000000) != HAL_OK)
+    {
+        return -1;
     }
     return bufSize;
 }
@@ -250,13 +254,13 @@ __weak void button_a_callback()
     if (BUTTON_A_IS_PRESSED)
     {
         val += 32;
-        if (val > 2047) val = 2047;
+        if (val > 2047)
+            val = 2047;
         RGB_LED_SET_R(val);
         RGB_LED_SET_G(val);
         RGB_LED_SET_B(val);
     }
 }
-
 
 __weak void button_b_callback()
 {
@@ -267,19 +271,18 @@ __weak void button_b_callback()
     if (BUTTON_B_IS_PRESSED)
     {
         val -= 32;
-        if (val < 0) val = 0;
+        if (val < 0)
+            val = 0;
         RGB_LED_SET_R(val);
         RGB_LED_SET_G(val);
         RGB_LED_SET_B(val);
     }
 }
 
-
 void EXTI4_IRQHandler(void)
 {
     HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
 }
-
 
 void EXTI15_10_IRQHandler(void)
 {
@@ -296,12 +299,11 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         break;
 
     case (BUTTON_B_PIN):
-        
+
         button_b_callback();
         break;
-    
-    default:
-       break;
 
+    default:
+        break;
     }
 }
