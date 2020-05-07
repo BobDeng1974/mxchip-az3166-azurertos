@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/**************************************************************************/
+/*                                                                        */
+/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
+/*                                                                        */
+/**************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <tx_api.h>
 #include <nx_api.h>
 #include <nx_secure_tls_api.h>
 #include <nxd_mqtt_client.h>
@@ -150,11 +149,6 @@ static UINT mqtt_message_length;
 static UINT fan_on = NX_FALSE;
 static UINT temperature = 20;
 
-void thread_sleep(unsigned int);
-void mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
-extern int platform_init(void);
-extern void platform_deinit(void);
-
 /* Process command.  */
 static VOID my_notify_func(NXD_MQTT_CLIENT *client_ptr, UINT number_of_messages)
 {
@@ -212,7 +206,7 @@ static UINT threadx_mqtt_tls_setup(NXD_MQTT_CLIENT *client_ptr, NX_SECURE_TLS_SE
   return (NX_SUCCESS);
 }
 
-VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
+VOID sample_entry(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
 {
   UINT status;
   UINT time_counter = 0;
@@ -226,44 +220,122 @@ VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
   sprintf(mqtt_publish_topic, PUBLISH_TOPIC, DEVICE_ID);
   sprintf(mqtt_subscribe_topic, SUBSCRIBE_TOPIC, DEVICE_ID);
 
-  if (platform_init() == 0)
+  /* Create MQTT Client.  */
+  status = nxd_mqtt_client_create(&mqtt_client_secure, "MQTT_CLIENT", DEVICE_ID,
+                                  strlen(DEVICE_ID), ip_ptr, pool_ptr,
+                                  (VOID *)mqtt_client_stack, sizeof(mqtt_client_stack),
+                                  2, NX_NULL, 0);
+
+  /* Check status.  */
+  if (status)
   {
-    printf("Failed to initialize platform.\r\n");
+    printf("Error in creating MQTT client: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Create TLS session.  */
+  status = nx_secure_tls_session_create(&(mqtt_client_secure.nxd_mqtt_tls_session),
+                                        &nx_crypto_tls_ciphers,
+                                        threadx_tls_metadata_buffer,
+                                        THREADX_TLS_METADATA_BUFFER);
+
+  /* Check status.  */
+  if (status)
+  {
+    printf("Error in creating TLS Session: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Set username and password.  */
+  status = nxd_mqtt_client_login_set(&mqtt_client_secure, mqtt_user_name, strlen(mqtt_user_name),
+                                     DEVICE_SAS, strlen(DEVICE_SAS));
+
+  /* Check status.  */
+  if (status)
+  {
+    printf("Error in setting username and password: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Resolve the server name to get the address.  */
+  status = nxd_dns_host_by_name_get(dns_ptr, (UCHAR *)HOST_NAME, &server_address, NX_IP_PERIODIC_RATE, NX_IP_VERSION_V4);
+  if (status)
+  {
+    printf("Error in getting host address: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Start MQTT connection.  */
+  status = nxd_mqtt_client_secure_connect(&mqtt_client_secure, &server_address, SERVER_PORT,
+                                          threadx_mqtt_tls_setup, 6 * NX_IP_PERIODIC_RATE, NX_TRUE,
+                                          NX_WAIT_FOREVER);
+  if (status)
+  {
+    printf("Error in connecting to server: 0x%02x\r\n", status);
+    return;
+  }
+
+  printf("Connected to server\r\n");
+
+  /* Subscribe.  */
+  status = nxd_mqtt_client_subscribe(&mqtt_client_secure, mqtt_subscribe_topic,
+                                     strlen(mqtt_subscribe_topic), 0);
+  if (status)
+  {
+    printf("Error in subscribing to server: 0x%02x\r\n", status);
+    return;
+  }
+
+  printf("Subscribed to server\r\n");
+
+  /* Set notify function.  */
+  status = nxd_mqtt_client_receive_notify_set(&mqtt_client_secure, my_notify_func);
+  if (status)
+  {
+    printf("Error in setting receive notify: 0x%02x\r\n", status);
     return;
   }
 
   /* Loop to send publish message and wait for command.  */
   while (1)
   {
+
     /* Send publish message every five seconds.  */
     if ((time_counter % 5) == 0)
     {
-      printf("Sending message...");
+
+      /* Check if turn fan on.  */
+      if (fan_on == NX_FALSE)
+      {
+        if (temperature < 40)
+          temperature++;
+      }
+      else
+      {
+        if (temperature > 0)
+          temperature--;
+      }
+
+      /* Publish message.  */
+      sprintf((CHAR *)mqtt_message_buffer, "{\"temperature\": %d}", temperature);
+      status = nxd_mqtt_client_publish(&mqtt_client_secure, mqtt_publish_topic, strlen(mqtt_publish_topic),
+                                       (CHAR *)mqtt_message_buffer,
+                                       strlen((CHAR const *)mqtt_message_buffer),
+                                       0, 1, NX_WAIT_FOREVER);
+      if (status)
+      {
+        printf("Publish failed: 0x%02x\r\n", status);
+      }
+      else
+      {
+        printf("[Published] topic = %s, message: %s\r\n", mqtt_publish_topic, (CHAR *)mqtt_message_buffer);
+      }
     }
 
     /* Sleep 1s.  */
-    thread_sleep(100);
+    tx_thread_sleep(100);
 
     /* Update the counter.  */
     time_counter++;
   }
-
-  /* Deinit platform.  */
-  platform_deinit();
-}
-
-/* Process the thread sleep functionality of the SDK.  */
-
-void thread_sleep(unsigned int milliseconds)
-{
-  UINT ticks;
-
-  /* Change milliseconds to ticks.  */
-  ticks = (milliseconds * TX_TIMER_TICKS_PER_SECOND) / 1000;
-
-  /* Check if ticks is zero.  */
-  if (ticks == 0)
-    ticks = 1;
-
-  tx_thread_sleep(ticks);
 }

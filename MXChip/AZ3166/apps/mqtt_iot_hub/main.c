@@ -22,15 +22,13 @@
 /**************************************************************************/
 
 #include <nx_api.h>
-#include <stm32f4xx_hal.h>
+#include <nxd_dns.h>
 #include <board_init.h>
 #include <wwd_management.h>
 #include <wwd_wifi.h>
 #include <wwd_buffer_interface.h>
 #include <wwd_network.h>
-
-/* Include the sample for Azure SDK Digitaltwin.  */
-extern void mqtt_iothub_run(void);
+#include <stm32f4xx_hal.h>
 
 #define STR_EXPAND(x) #x
 #define STR(x) STR_EXPAND(x)
@@ -60,21 +58,42 @@ extern void mqtt_iothub_run(void);
 #endif /* WIFI_COUNTRY  */
 
 
-/* Define the helper thread for running Azure SDK on ThreadX (THREADX IoT Platform).  */
-#ifndef THREADX_AZURE_SDK_HELPER_THREAD_STACK_SIZE
-#define THREADX_AZURE_SDK_HELPER_THREAD_STACK_SIZE      (4096)
-#endif /* THREADX_AZURE_SDK_HELPER_THREAD_STACK_SIZE  */
+/* Define the thread for running Azure demo on ThreadX (X-Ware IoT Platform).  */
+#ifndef SAMPLE_THREAD_STACK_SIZE
+#define SAMPLE_THREAD_STACK_SIZE      (4096)
+#endif /* SAMPLE_THREAD_STACK_SIZE  */
 
-#ifndef THREADX_AZURE_SDK_HELPER_THREAD_PRIORITY
-#define THREADX_AZURE_SDK_HELPER_THREAD_PRIORITY        (4)
-#endif /* THREADX_AZURE_SDK_HELPER_THREAD_PRIORITY  */
+#ifndef SAMPLE_THREAD_PRIORITY
+#define SAMPLE_THREAD_PRIORITY        (4)
+#endif /* SAMPLE_THREAD_PRIORITY  */
 
-/* Define the memory area for helper thread.  */
-UCHAR threadx_azure_sdk_helper_thread_stack[THREADX_AZURE_SDK_HELPER_THREAD_STACK_SIZE];
+/* Define the memory area for sample thread.  */
+UCHAR sample_thread_stack[SAMPLE_THREAD_STACK_SIZE];
 
-/* Define the prototypes for helper thread.  */
-TX_THREAD threadx_azure_sdk_helper_thread;
-void threadx_azure_sdk_helper_thread_entry(ULONG parameter);
+/* Define the prototypes for sample thread.  */
+TX_THREAD sample_thread;
+void sample_thread_entry(ULONG parameter);
+
+/* Define the default thread priority, stack size, etc. The user can override this 
+   via -D command line option or via project settings.  */
+
+#ifndef SAMPLE_PACKET_COUNT
+#define SAMPLE_PACKET_COUNT             (20)
+#endif /* SAMPLE_PACKET_COUNT  */
+
+#ifndef SAMPLE_PACKET_SIZE
+#define SAMPLE_PACKET_SIZE              (1200)  /* Set the default value to 1200 since WIFI payload size (ES_WIFI_PAYLOAD_SIZE) is 1200.  */
+#endif /* SAMPLE_PACKET_SIZE  */
+
+#define SAMPLE_POOL_SIZE                ((SAMPLE_PACKET_SIZE + sizeof(NX_PACKET)) * SAMPLE_PACKET_COUNT)
+
+/* Define the prototypes for ThreadX.  */
+static NX_IP                            ip_0;
+static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX.  */
+static NX_DNS                           dns_client;
+
+/* Include MQTT application entry.  */
+extern void mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
 
 /******** Optionally substitute your Ethernet driver here. ***********/
 void (*platform_driver_get())(NX_IP_DRIVER *);
@@ -83,11 +102,11 @@ void (*platform_driver_get())(NX_IP_DRIVER *);
 int main(void)
 {
     /* Enable execution profile.  */
-    CoreDebug -> DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    DWT -> CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+    // CoreDebug -> DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    // DWT -> CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     
     /* Setup platform. */
-    hardware_setup();
+    board_setup();
     
     /* Enter the ThreadX kernel.  */
     tx_kernel_enter();
@@ -101,22 +120,22 @@ void    tx_application_define(void *first_unused_memory)
 
 UINT  status;
     
-    /* Create THREADX Azure SDK helper thread. */
-    status = tx_thread_create(&threadx_azure_sdk_helper_thread, "THREADX Azure SDK Help Thread",
-                     threadx_azure_sdk_helper_thread_entry, 0,
-                     threadx_azure_sdk_helper_thread_stack, THREADX_AZURE_SDK_HELPER_THREAD_STACK_SIZE,
-                     THREADX_AZURE_SDK_HELPER_THREAD_PRIORITY, THREADX_AZURE_SDK_HELPER_THREAD_PRIORITY, 
+    /* Create Sample thread. */
+    status = tx_thread_create(&sample_thread, "Sample Thread",
+                     sample_thread_entry, 0,
+                     sample_thread_stack, SAMPLE_THREAD_STACK_SIZE,
+                     SAMPLE_THREAD_PRIORITY, SAMPLE_THREAD_PRIORITY, 
                      TX_NO_TIME_SLICE, TX_AUTO_START);    
     
     /* Check status.  */
     if (status)
-        printf("THREADX Azure SDK Helper Thread Create Fail.\r\n");
+        printf("Sample Thread Create Fail.\r\n");
 }
 
-/* Define THREADX Azure SDK helper thread entry.  */
-void threadx_azure_sdk_helper_thread_entry(ULONG parameter)
+/* Define Sample thread entry.  */
+void sample_thread_entry(ULONG parameter)
 {
-    mqtt_iothub_run();
+    mqtt_iothub_run(&ip_0, &nx_pool, &dns_client);
 }
 
 /* Get the network driver.  */

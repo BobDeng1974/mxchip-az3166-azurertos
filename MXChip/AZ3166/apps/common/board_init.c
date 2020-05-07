@@ -82,7 +82,7 @@ static void SystemClock_Config(void)
     }
 }
 
-VOID hardware_setup(void)
+VOID board_setup(void)
 {
 
     GPIO_InitTypeDef gpio_init_structure;

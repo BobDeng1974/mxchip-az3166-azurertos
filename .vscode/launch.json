@@ -13,7 +13,7 @@
 			"runToMain": true,
 			"servertype": "external",
 			// Get WSL2 IP from "cat /etc/resolv.conf"
-			"gdbTarget": "192.168.144.1:3333",
+			"gdbTarget": "172.31.240.1:3333",
 			"device": "STM32F412RG",
 			"interface": "swd",
 			"svdFile": "${workspaceFolder}/MXChip/AZ3166/STM32F412.svd",

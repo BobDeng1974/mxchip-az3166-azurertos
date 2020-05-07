@@ -23,6 +23,6 @@
 #define RGB_LED_SET_B(value)        TIM3 -> CCR2 = value
 
 /* Define prototypes. */
-VOID hardware_setup();
+VOID board_setup();
 
 #endif

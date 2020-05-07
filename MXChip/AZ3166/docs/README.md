@@ -89,7 +89,7 @@ We develop and build everything within WSL2.
 * In Windows, launch **openocd**:
 
     ```cmd
-    openocd -c "bindto 0.0.0.0" -s "C:\Program Files(x86)\OpenOCD-20200310-0.10.0\share\openocd\scripts" -f interface/stlink.cfg -f target/stm32f4x.cfg
+    openocd -c "bindto 0.0.0.0" -s "C:\Program Files(x86)\OpenOCD\share\openocd\scripts" -f interface/stlink.cfg -f target/stm32f4x.cfg
     ```
 
 * `F5` debug in VS Code. Then select `create_threads`.
