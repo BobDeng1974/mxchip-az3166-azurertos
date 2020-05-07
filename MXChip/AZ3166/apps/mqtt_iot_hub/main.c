@@ -88,12 +88,12 @@ void sample_thread_entry(ULONG parameter);
 #define SAMPLE_POOL_SIZE                ((SAMPLE_PACKET_SIZE + sizeof(NX_PACKET)) * SAMPLE_PACKET_COUNT)
 
 /* Define the prototypes for ThreadX.  */
-static NX_IP                            ip_0;
-static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX.  */
-static NX_DNS                           dns_client;
+// static NX_IP                            ip_0;
+// static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX.  */
+// static NX_DNS                           dns_client;
 
 /* Include MQTT application entry.  */
-extern void mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
+extern void mqtt_iothub_run();
 
 /******** Optionally substitute your Ethernet driver here. ***********/
 void (*platform_driver_get())(NX_IP_DRIVER *);
@@ -135,7 +135,7 @@ UINT  status;
 /* Define Sample thread entry.  */
 void sample_thread_entry(ULONG parameter)
 {
-    mqtt_iothub_run(&ip_0, &nx_pool, &dns_client);
+    mqtt_iothub_run();
 }
 
 /* Get the network driver.  */

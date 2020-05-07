@@ -249,17 +249,17 @@ int platform_init(void)
 
   /* Output IP address and gateway address. */
   /* LogInfo */
-  printf("IP address: %lu.%lu.%lu.%lu",
+  printf("IP address: %lu.%lu.%lu.%lu\r\n",
          (ip_address >> 24),
          (ip_address >> 16 & 0xFF),
          (ip_address >> 8 & 0xFF),
          (ip_address & 0xFF));
-  printf("Mask: %lu.%lu.%lu.%lu",
+  printf("Mask: %lu.%lu.%lu.%lu\r\n",
          (network_mask >> 24),
          (network_mask >> 16 & 0xFF),
          (network_mask >> 8 & 0xFF),
          (network_mask & 0xFF));
-  printf("Gateway: %lu.%lu.%lu.%lu",
+  printf("Gateway: %lu.%lu.%lu.%lu\r\n",
          (gateway_address >> 24),
          (gateway_address >> 16 & 0xFF),
          (gateway_address >> 8 & 0xFF),
@@ -345,7 +345,7 @@ static void wait_dhcp(void)
   ULONG actual_status;
 
   /* LogInfo */
-  printf("DHCP In Progress...");
+  printf("DHCP In Progress...\r\n");
 
   /* Create the DHCP instance.  */
   nx_dhcp_create(&dhcp_client, &ip_0, "dhcp_client");
@@ -428,7 +428,7 @@ static UINT sntp_time_sync()
   UINT i;
 
   /* LogInfo */
-  printf("SNTP Time Sync...");
+  printf("SNTP Time Sync...\r\n");
 
 #ifndef THREADX_SNTP_SERVER_ADDRESS
   /* Look up an IPv4 address over IPv4. */

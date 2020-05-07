@@ -202,8 +202,14 @@ VOID board_setup(void)
     HAL_GPIO_Init(GPIOB, &gpio_init_structure);
 }
 #ifdef USE_COM_PORT
-#if (defined(__ICCARM__))
-size_t __write(int handle, const unsigned char *buf, size_t bufSize)
+#if (defined(__GNUC__))
+int _write(int fd, char * ptr, int len)
+{
+  HAL_UART_Transmit(&UartHandle, (uint8_t *) ptr, len, HAL_MAX_DELAY);
+  return len;
+}
+#elif (defined(__ICCARM__))
+size_t __write(int handle, const unsigned char *buffer, size_t size)
 {
 
     /* Check for the command to flush all handles */
@@ -217,15 +223,15 @@ size_t __write(int handle, const unsigned char *buf, size_t bufSize)
         return -1;
     }
 
-    if (HAL_UART_Transmit(&UartHandle, (uint8_t *)buf, bufSize, 5000) != HAL_OK)
+    if (HAL_UART_Transmit(&UartHandle, (uint8_t *)buffer, size, 5000) != HAL_OK)
     {
         return -1;
     }
 
-    return bufSize;
+    return size;
 }
 
-size_t __read(int handle, unsigned char *buf, size_t bufSize)
+size_t __read(int handle, unsigned char *buffer, size_t size)
 {
 
     /* Check for stdin      (only necessary if FILE descriptors are enabled) */
@@ -234,11 +240,17 @@ size_t __read(int handle, unsigned char *buf, size_t bufSize)
         return -1;
     }
 
-    if (HAL_UART_Receive(&UartHandle, (uint8_t *)buf, bufSize, 0x10000000) != HAL_OK)
+    if (HAL_UART_Receive(&UartHandle, (uint8_t *)buffer, size, 0x10000000) != HAL_OK)
     {
         return -1;
     }
-    return bufSize;
+    return size;
+}
+#elif defined (__CC_ARM)
+int fputc(int ch, FILE *f)
+{
+    HAL_UART_Transmit(&UartHandle, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+    return ch;
 }
 #endif
 #endif

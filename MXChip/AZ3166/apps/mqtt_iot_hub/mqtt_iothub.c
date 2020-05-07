@@ -144,14 +144,14 @@ static UCHAR mqtt_client_stack[4096];
 static UCHAR mqtt_topic_buffer[200];
 static UINT mqtt_topic_length;
 static UCHAR mqtt_message_buffer[200];
-static UINT mqtt_message_length;
+static UINT mqtt_message_length;/*  */
 
 /* Fan info.  */
 static UINT fan_on = NX_FALSE;
 static UINT temperature = 20;
 
 void thread_sleep(unsigned int);
-void mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
+void mqtt_iothub_run();
 extern int platform_init(void);
 extern void platform_deinit(void);
 
@@ -212,7 +212,7 @@ static UINT threadx_mqtt_tls_setup(NXD_MQTT_CLIENT *client_ptr, NX_SECURE_TLS_SE
   return (NX_SUCCESS);
 }
 
-VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
+VOID mqtt_iothub_run()
 {
   UINT status;
   UINT time_counter = 0;
@@ -238,11 +238,36 @@ VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
     /* Send publish message every five seconds.  */
     if ((time_counter % 5) == 0)
     {
-      printf("Sending message...");
+      /* Check if turn fan on.  */
+      if (fan_on == NX_FALSE)
+      {
+        if (temperature < 40)
+          temperature++;
+      }
+      else
+      {
+        if (temperature > 0)
+          temperature--;
+      }
+
+      /* Publish message.  */
+      sprintf((CHAR *)mqtt_message_buffer, "{\"temperature\": %d}", temperature);
+      status = nxd_mqtt_client_publish(&mqtt_client_secure, mqtt_publish_topic, strlen(mqtt_publish_topic),
+                                       (CHAR *)mqtt_message_buffer,
+                                       strlen((CHAR const *)mqtt_message_buffer),
+                                       0, 1, NX_WAIT_FOREVER);
+      if (status)
+      {
+        printf("Publish failed: 0x%02x\r\n", status);
+      }
+      else
+      {
+        printf("[Published] topic = %s, message: %s\r\n", mqtt_publish_topic, (CHAR *)mqtt_message_buffer);
+      }
     }
 
     /* Sleep 1s.  */
-    thread_sleep(100);
+    thread_sleep(1000);
 
     /* Update the counter.  */
     time_counter++;

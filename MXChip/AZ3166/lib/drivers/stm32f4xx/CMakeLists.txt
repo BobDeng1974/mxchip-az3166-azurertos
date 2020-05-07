@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14.0 FATAL_ERROR)
 project(stm32f4xx LANGUAGES C ASM)
 
 find_package(CMSIS REQUIRED)
-find_package(STM32HAL REQUIRED COMPONENTS gpio i2c tim uart)
+find_package(STM32HAL REQUIRED COMPONENTS gpio tim uart)
 
 add_library(${PROJECT_NAME}
     STATIC
