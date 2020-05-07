@@ -74,24 +74,6 @@ UCHAR sample_thread_stack[SAMPLE_THREAD_STACK_SIZE];
 TX_THREAD sample_thread;
 void sample_thread_entry(ULONG parameter);
 
-/* Define the default thread priority, stack size, etc. The user can override this 
-   via -D command line option or via project settings.  */
-
-#ifndef SAMPLE_PACKET_COUNT
-#define SAMPLE_PACKET_COUNT             (20)
-#endif /* SAMPLE_PACKET_COUNT  */
-
-#ifndef SAMPLE_PACKET_SIZE
-#define SAMPLE_PACKET_SIZE              (1200)  /* Set the default value to 1200 since WIFI payload size (ES_WIFI_PAYLOAD_SIZE) is 1200.  */
-#endif /* SAMPLE_PACKET_SIZE  */
-
-#define SAMPLE_POOL_SIZE                ((SAMPLE_PACKET_SIZE + sizeof(NX_PACKET)) * SAMPLE_PACKET_COUNT)
-
-/* Define the prototypes for ThreadX.  */
-// static NX_IP                            ip_0;
-// static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX.  */
-// static NX_DNS                           dns_client;
-
 /* Include MQTT application entry.  */
 extern void mqtt_iothub_run();
 
@@ -160,7 +142,7 @@ UINT wifi_network_join(void *pools)
     /* Set country.  */
     if (wwd_management_wifi_on(WIFI_COUNTRY) != WWD_SUCCESS)
     {
-        printf("Failed to set WiFI Country!\r\n");
+        printf("Failed to set WiFi Country!\r\n");
         return(NX_NOT_SUCCESSFUL);
     }
 
@@ -168,7 +150,7 @@ UINT wifi_network_join(void *pools)
     printf("Joining: %s\r\n", STR(WIFI_SSID));
     while (wwd_wifi_join(&wifi_ssid, WIFI_SECURITY, (uint8_t*)STR(WIFI_PASSWORD), sizeof(STR(WIFI_PASSWORD))-1, NULL, WWD_STA_INTERFACE) != WWD_SUCCESS)
     {
-        printf("Failed to join: %s ... retrying\r\n", STR(WIFI_SSID));
+        printf("Failed to join: %s ... retrying...\r\n", STR(WIFI_SSID));
     }
     
     printf("Successfully joined: %s.\r\n", STR(WIFI_SSID));

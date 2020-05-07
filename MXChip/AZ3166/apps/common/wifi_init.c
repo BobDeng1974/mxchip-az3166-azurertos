@@ -9,6 +9,7 @@
 #include <nxd_dns.h>
 #include <nx_secure_tls_api.h>
 #include <wwd_network_constants.h>
+#include <wifi_init.h>
 
 #ifndef SAMPLE_SNTP_DISABLE
 #include <nxd_sntp_client.h>
@@ -27,11 +28,11 @@ extern UINT wifi_network_join(void *pools);
 #endif /* SAMPLE_IP_STACK_SIZE  */
 
 #ifndef SAMPLE_TX_PACKET_COUNT
-#define SAMPLE_TX_PACKET_COUNT (32)
+#define SAMPLE_TX_PACKET_COUNT (16)
 #endif /* SAMPLE_TX_PACKET_COUNT  */
 
 #ifndef SAMPLE_RX_PACKET_COUNT
-#define SAMPLE_RX_PACKET_COUNT (16)
+#define SAMPLE_RX_PACKET_COUNT (8)
 #endif /* SAMPLE_RX_PACKET_COUNT  */
 
 #ifndef SAMPLE_PACKET_SIZE
@@ -77,9 +78,9 @@ static UCHAR sample_rx_pool_stack[SAMPLE_RX_POOL_SIZE];
 static UCHAR sample_arp_cache_area[SAMPLE_ARP_CACHE_SIZE];
 
 /* Define the prototypes for ThreadX.  */
-static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX. */
-static NX_IP                            ip_0;
-static NX_DNS                           dns_client;
+// static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX. */
+// static NX_IP                            ip_0;
+// static NX_DNS                           dns_client;
 NX_DNS *_sample_dns_client_created_ptr;
 
 #ifndef SAMPLE_SNTP_DISABLE
@@ -147,7 +148,7 @@ int platform_init(void)
   if (status)
   {
     printf("Sample platform initialize fail: PACKET POOL CREATE FAIL.");
-    return 0;
+    return -1;
   }
 
   status = nx_packet_pool_create(&nx_pool[1], "NetX Main RX Packet Pool", SAMPLE_PACKET_SIZE,
@@ -158,7 +159,7 @@ int platform_init(void)
   {
     nx_packet_pool_delete(&nx_pool[0]);
     printf("Sample platform initialize fail: PACKET POOL CREATE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
   /* Join Wifi network.  */
@@ -167,7 +168,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[0]);
     nx_packet_pool_delete(&nx_pool[1]);
     printf("Sample platform initialize fail: WIFI JOIN FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
   /* Create an IP instance for the DHCP Client. The rest of the DHCP Client set up is handled
@@ -181,7 +182,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[0]);
     nx_packet_pool_delete(&nx_pool[1]);
     printf("Sample platform initialize fail: IP CREATE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
   /* Enable ARP and supply ARP cache memory for IP Instance 0.  */
@@ -194,7 +195,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[0]);
     nx_packet_pool_delete(&nx_pool[1]);
     printf("Sample platform initialize fail: ARP ENABLE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
   /* Enable ICMP traffic.  */
@@ -207,7 +208,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[0]);
     nx_packet_pool_delete(&nx_pool[1]);
     printf("Sample platform initialize fail: ICMP ENABLE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
   /* Enable TCP traffic.  */
@@ -221,7 +222,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[1]);
     /* LogError */
     printf("Sample platform initialize fail: TCP ENABLE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
   /* Enable UDP traffic.  */
@@ -234,7 +235,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[0]);
     nx_packet_pool_delete(&nx_pool[1]);
     printf("Sample platform initialize fail: UDP ENABLE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
 #ifndef SAMPLE_DHCP_DISABLE
@@ -276,7 +277,7 @@ int platform_init(void)
     nx_packet_pool_delete(&nx_pool[0]);
     nx_packet_pool_delete(&nx_pool[1]);
     printf("Sample platform initialize fail: DNS CREATE FAIL.\r\n");
-    return 0;
+    return -1;
   }
 
 #ifndef SAMPLE_SNTP_DISABLE
@@ -314,7 +315,7 @@ int platform_init(void)
   /* Initialize ThreadX Azure SDK.  */
   // threadx_azure_sdk_initialize();
 
-  return 1;
+  return 0;
 }
 
 void platform_deinit(void)

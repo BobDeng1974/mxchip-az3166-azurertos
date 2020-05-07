@@ -9,21 +9,22 @@
 #include <nx_secure_tls_api.h>
 #include <nxd_mqtt_client.h>
 #include <nxd_dns.h>
+#include <wifi_init.h>
 
 //
 // TODO`s: Configure core settings of application for your IoTHub, replace the [IoT Hub Name] and [Device ID] as yours. Use Device Explorer to generate [SAS].
 //
 
 #ifndef HOST_NAME
-#define HOST_NAME ""
+#define HOST_NAME "TestHubLiya.azure-device.net"
 #endif /* HOST_NAME */
 
 #ifndef DEVICE_ID
-#define DEVICE_ID ""
+#define DEVICE_ID "AZURERTOS-Device"
 #endif /* DEVICE_ID */
 
 #ifndef DEVICE_SAS
-#define DEVICE_SAS ""
+#define DEVICE_SAS "SharedAccessSignature sr=TestHubLiya.azure-devices.net%2Fdevices%2FAZURERTOS-Device&sig=NA6z1SMoREqENhmIp6t66XIZfA7gz9fwtn7yyNDfPb8%3D&se=1588851069"
 #endif /* DEVICE_SAS */
 
 //
@@ -144,7 +145,7 @@ static UCHAR mqtt_client_stack[4096];
 static UCHAR mqtt_topic_buffer[200];
 static UINT mqtt_topic_length;
 static UCHAR mqtt_message_buffer[200];
-static UINT mqtt_message_length;/*  */
+static UINT mqtt_message_length;
 
 /* Fan info.  */
 static UINT fan_on = NX_FALSE;
@@ -226,9 +227,86 @@ VOID mqtt_iothub_run()
   sprintf(mqtt_publish_topic, PUBLISH_TOPIC, DEVICE_ID);
   sprintf(mqtt_subscribe_topic, SUBSCRIBE_TOPIC, DEVICE_ID);
 
-  if (platform_init() == 0)
+  if (platform_init() != 0)
   {
     printf("Failed to initialize platform.\r\n");
+    return;
+  }
+
+
+  /* Create MQTT Client.  */
+  status = nxd_mqtt_client_create(&mqtt_client_secure, "MQTT_CLIENT", DEVICE_ID,
+                                  strlen(DEVICE_ID), &ip_0, &nx_pool[0],
+                                  (VOID *)mqtt_client_stack, sizeof(mqtt_client_stack),
+                                  2, NX_NULL, 0);
+
+  /* Check status.  */
+  if (status)
+  {
+    printf("Error in creating MQTT client: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Create TLS session.  */
+  status = nx_secure_tls_session_create(&(mqtt_client_secure.nxd_mqtt_tls_session),
+                                        &nx_crypto_tls_ciphers,
+                                        threadx_tls_metadata_buffer,
+                                        THREADX_TLS_METADATA_BUFFER);
+
+  /* Check status.  */
+  if (status)
+  {
+    printf("Error in creating TLS Session: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Set username and password.  */
+  status = nxd_mqtt_client_login_set(&mqtt_client_secure, mqtt_user_name, strlen(mqtt_user_name),
+                                     DEVICE_SAS, strlen(DEVICE_SAS));
+
+  /* Check status.  */
+  if (status)
+  {
+    printf("Error in setting username and password: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Resolve the server name to get the address.  */
+  status = nxd_dns_host_by_name_get(&dns_client, (UCHAR *)HOST_NAME, &server_address, NX_IP_PERIODIC_RATE, NX_IP_VERSION_V4);
+  if (status)
+  {
+    printf("Error in getting host address: 0x%02x\r\n", status);
+    return;
+  }
+
+  /* Start MQTT connection.  */
+  status = nxd_mqtt_client_secure_connect(&mqtt_client_secure, &server_address, SERVER_PORT,
+                                          threadx_mqtt_tls_setup, 6 * NX_IP_PERIODIC_RATE, NX_TRUE,
+                                          NX_WAIT_FOREVER);
+  if (status)
+  {
+    printf("Error in connecting to server: 0x%02x\r\n", status);
+    return;
+  }
+
+  printf("Connected to server\r\n");
+
+  /* Subscribe.  */
+  status = nxd_mqtt_client_subscribe(&mqtt_client_secure, mqtt_subscribe_topic,
+                                     strlen(mqtt_subscribe_topic), 0);
+  if (status)
+  {
+    printf("Error in subscribing to server: 0x%02x\r\n", status);
+    return;
+  }
+
+  printf("Subscribed to server\r\n");
+
+  /* Set notify function.  */
+  status = nxd_mqtt_client_receive_notify_set(&mqtt_client_secure, my_notify_func);
+  if (status)
+  {
+    printf("Error in setting receive notify: 0x%02x\r\n", status);
     return;
   }
 

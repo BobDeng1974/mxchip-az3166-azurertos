@@ -1,5 +1,5 @@
-#ifndef BOARD_INIT_HEADER
-#define BOARD_INIT_HEADER
+#ifndef BOARD_INIT_H
+#define BOARD_INIT_H
 
 #include <tx_api.h>
 
