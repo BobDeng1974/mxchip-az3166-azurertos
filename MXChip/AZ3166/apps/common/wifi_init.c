@@ -9,7 +9,6 @@
 #include <nxd_dns.h>
 #include <nx_secure_tls_api.h>
 #include <wwd_network_constants.h>
-#include <wifi_init.h>
 
 #ifndef SAMPLE_SNTP_DISABLE
 #include <nxd_sntp_client.h>
@@ -78,9 +77,9 @@ static UCHAR sample_rx_pool_stack[SAMPLE_RX_POOL_SIZE];
 static UCHAR sample_arp_cache_area[SAMPLE_ARP_CACHE_SIZE];
 
 /* Define the prototypes for ThreadX.  */
-// static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX. */
-// static NX_IP                            ip_0;
-// static NX_DNS                           dns_client;
+static NX_PACKET_POOL                   nx_pool[2]; /* 0=TX, 1=RX. */
+static NX_IP                            ip_0;
+static NX_DNS                           dns_client;
 NX_DNS *_sample_dns_client_created_ptr;
 
 #ifndef SAMPLE_SNTP_DISABLE
@@ -128,6 +127,9 @@ static UINT dns_create();
 #ifndef SAMPLE_SNTP_DISABLE
 static UINT sntp_time_sync();
 #endif /* SAMPLE_SNTP_DISABLE */
+
+/* Initialize MQTT client */
+extern VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
 
 int platform_init(void)
 {
@@ -312,8 +314,8 @@ int platform_init(void)
   /* Initialize TLS.  */
   nx_secure_tls_initialize();
 
-  /* Initialize ThreadX Azure SDK.  */
-  // threadx_azure_sdk_initialize();
+  /* Initialize MQTT client.  */
+  mqtt_iothub_run(&ip_0, &nx_pool[0], &dns_client);
 
   return 0;
 }

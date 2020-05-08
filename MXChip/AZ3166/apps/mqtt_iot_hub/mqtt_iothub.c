@@ -9,14 +9,13 @@
 #include <nx_secure_tls_api.h>
 #include <nxd_mqtt_client.h>
 #include <nxd_dns.h>
-#include <wifi_init.h>
 
 //
 // TODO`s: Configure core settings of application for your IoTHub, replace the [IoT Hub Name] and [Device ID] as yours. Use Device Explorer to generate [SAS].
 //
 
 #ifndef HOST_NAME
-#define HOST_NAME "TestHubLiya.azure-device.net"
+#define HOST_NAME "TestHubLiya.azure-devices.net"
 #endif /* HOST_NAME */
 
 #ifndef DEVICE_ID
@@ -24,7 +23,7 @@
 #endif /* DEVICE_ID */
 
 #ifndef DEVICE_SAS
-#define DEVICE_SAS "SharedAccessSignature sr=TestHubLiya.azure-devices.net%2Fdevices%2FAZURERTOS-Device&sig=NA6z1SMoREqENhmIp6t66XIZfA7gz9fwtn7yyNDfPb8%3D&se=1588851069"
+#define DEVICE_SAS "SharedAccessSignature sr=TestHubLiya.azure-devices.net%2Fdevices%2FAZURERTOS-Device&sig=YnlBhUEepah9n5ZpmwTrp6PX0Uw3x6Pg8JoeI7Y4yOI%3D&se=1588926380"
 #endif /* DEVICE_SAS */
 
 //
@@ -152,8 +151,7 @@ static UINT fan_on = NX_FALSE;
 static UINT temperature = 20;
 
 void thread_sleep(unsigned int);
-void mqtt_iothub_run();
-extern int platform_init(void);
+VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
 extern void platform_deinit(void);
 
 /* Process command.  */
@@ -213,7 +211,7 @@ static UINT threadx_mqtt_tls_setup(NXD_MQTT_CLIENT *client_ptr, NX_SECURE_TLS_SE
   return (NX_SUCCESS);
 }
 
-VOID mqtt_iothub_run()
+VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
 {
   UINT status;
   UINT time_counter = 0;
@@ -227,16 +225,9 @@ VOID mqtt_iothub_run()
   sprintf(mqtt_publish_topic, PUBLISH_TOPIC, DEVICE_ID);
   sprintf(mqtt_subscribe_topic, SUBSCRIBE_TOPIC, DEVICE_ID);
 
-  if (platform_init() != 0)
-  {
-    printf("Failed to initialize platform.\r\n");
-    return;
-  }
-
-
   /* Create MQTT Client.  */
   status = nxd_mqtt_client_create(&mqtt_client_secure, "MQTT_CLIENT", DEVICE_ID,
-                                  strlen(DEVICE_ID), &ip_0, &nx_pool[0],
+                                  strlen(DEVICE_ID), ip_ptr, pool_ptr,
                                   (VOID *)mqtt_client_stack, sizeof(mqtt_client_stack),
                                   2, NX_NULL, 0);
 
@@ -272,7 +263,7 @@ VOID mqtt_iothub_run()
   }
 
   /* Resolve the server name to get the address.  */
-  status = nxd_dns_host_by_name_get(&dns_client, (UCHAR *)HOST_NAME, &server_address, NX_IP_PERIODIC_RATE, NX_IP_VERSION_V4);
+  status = nxd_dns_host_by_name_get(dns_ptr, (UCHAR *)HOST_NAME, &server_address, NX_IP_PERIODIC_RATE, NX_IP_VERSION_V4);
   if (status)
   {
     printf("Error in getting host address: 0x%02x\r\n", status);

@@ -57,14 +57,13 @@
 // #define WIFI_COUNTRY                                    "WICED_COUNTRY_CHINA"
 #endif /* WIFI_COUNTRY  */
 
-
 /* Define the thread for running Azure demo on ThreadX (X-Ware IoT Platform).  */
 #ifndef SAMPLE_THREAD_STACK_SIZE
-#define SAMPLE_THREAD_STACK_SIZE      (4096)
+#define SAMPLE_THREAD_STACK_SIZE (4096)
 #endif /* SAMPLE_THREAD_STACK_SIZE  */
 
 #ifndef SAMPLE_THREAD_PRIORITY
-#define SAMPLE_THREAD_PRIORITY        (4)
+#define SAMPLE_THREAD_PRIORITY (4)
 #endif /* SAMPLE_THREAD_PRIORITY  */
 
 /* Define the memory area for sample thread.  */
@@ -74,8 +73,8 @@ UCHAR sample_thread_stack[SAMPLE_THREAD_STACK_SIZE];
 TX_THREAD sample_thread;
 void sample_thread_entry(ULONG parameter);
 
-/* Include MQTT application entry.  */
-extern void mqtt_iothub_run();
+/* Initalize the WiFi and application */
+extern int platform_init(void);
 
 /******** Optionally substitute your Ethernet driver here. ***********/
 void (*platform_driver_get())(NX_IP_DRIVER *);
@@ -83,77 +82,82 @@ void (*platform_driver_get())(NX_IP_DRIVER *);
 /* Define main entry point.  */
 int main(void)
 {
-    /* Enable execution profile.  */
-    // CoreDebug -> DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    // DWT -> CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-    
-    /* Setup platform. */
-    board_setup();
-    
-    /* Enter the ThreadX kernel.  */
-    tx_kernel_enter();
+  /* Enable execution profile.  */
+  // CoreDebug -> DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  // DWT -> CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
-    return -1;
+  /* Setup platform. */
+  board_setup();
+
+  /* Enter the ThreadX kernel.  */
+  tx_kernel_enter();
+
+  return -1;
 }
 
 /* Define what the initial system looks like.  */
-void    tx_application_define(void *first_unused_memory)
+void tx_application_define(void *first_unused_memory)
 {
 
-UINT  status;
-    
-    /* Create Sample thread. */
-    status = tx_thread_create(&sample_thread, "Sample Thread",
-                     sample_thread_entry, 0,
-                     sample_thread_stack, SAMPLE_THREAD_STACK_SIZE,
-                     SAMPLE_THREAD_PRIORITY, SAMPLE_THREAD_PRIORITY, 
-                     TX_NO_TIME_SLICE, TX_AUTO_START);    
-    
-    /* Check status.  */
-    if (status)
-        printf("Sample Thread Create Fail.\r\n");
+  UINT status;
+
+  /* Create Sample thread. */
+  status = tx_thread_create(&sample_thread, "Sample Thread",
+                            sample_thread_entry, 0,
+                            sample_thread_stack, SAMPLE_THREAD_STACK_SIZE,
+                            SAMPLE_THREAD_PRIORITY, SAMPLE_THREAD_PRIORITY,
+                            TX_NO_TIME_SLICE, TX_AUTO_START);
+
+  /* Check status.  */
+  if (status)
+    printf("Sample Thread Create Fail.\r\n");
 }
 
 /* Define Sample thread entry.  */
 void sample_thread_entry(ULONG parameter)
 {
-    mqtt_iothub_run();
+  if (platform_init() != 0)
+  {
+    printf("Failed to initialize platform.\r\n");
+    return;
+  }
 }
 
 /* Get the network driver.  */
-VOID (*platform_driver_get())(NX_IP_DRIVER *)
+VOID (*platform_driver_get())
+(NX_IP_DRIVER *)
 {
-    return(wiced_sta_netx_duo_driver_entry);
+  return (wiced_sta_netx_duo_driver_entry);
 }
 
 static const wiced_ssid_t wifi_ssid =
-{
-    .length = sizeof(STR(WIFI_SSID))-1,
-    .value  = STR(WIFI_SSID),
+    {
+        .length = sizeof(STR(WIFI_SSID)) - 1,
+        .value = STR(WIFI_SSID),
 };
 
 /* Join Network.  */
 UINT wifi_network_join(void *pools)
-{    
-    
-    /* Set pools for wifi.   */
-    wwd_buffer_init(pools);
-    
-    /* Set country.  */
-    if (wwd_management_wifi_on(WIFI_COUNTRY) != WWD_SUCCESS)
-    {
-        printf("Failed to set WiFi Country!\r\n");
-        return(NX_NOT_SUCCESSFUL);
-    }
+{
 
-    /* Attempt to join the Wi-Fi network.  */
-    printf("Joining: %s\r\n", STR(WIFI_SSID));
-    while (wwd_wifi_join(&wifi_ssid, WIFI_SECURITY, (uint8_t*)STR(WIFI_PASSWORD), sizeof(STR(WIFI_PASSWORD))-1, NULL, WWD_STA_INTERFACE) != WWD_SUCCESS)
-    {
-        printf("Failed to join: %s ... retrying...\r\n", STR(WIFI_SSID));
-    }
-    
-    printf("Successfully joined: %s.\r\n", STR(WIFI_SSID));
-    
-    return(NX_SUCCESS);
+  /* Set pools for wifi.   */
+  wwd_buffer_init(pools);
+
+  /* Set country.  */
+  if (wwd_management_wifi_on(WIFI_COUNTRY) != WWD_SUCCESS)
+  {
+    printf("Failed to set WiFi Country!\r\n");
+    return (NX_NOT_SUCCESSFUL);
+  }
+
+  /* Attempt to join the Wi-Fi network.  */
+  printf("Joining: %s\r\n", STR(WIFI_SSID));
+  while (wwd_wifi_join(&wifi_ssid, WIFI_SECURITY, (uint8_t *)STR(WIFI_PASSWORD), sizeof(STR(WIFI_PASSWORD)) - 1, NULL, WWD_STA_INTERFACE) != WWD_SUCCESS)
+  {
+    printf("Failed to join: %s ... retrying...\r\n", STR(WIFI_SSID));
+  }
+
+  printf("Successfully joined: %s.\r\n", STR(WIFI_SSID));
+
+  return (NX_SUCCESS);
 }
