@@ -1,10 +1,9 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/**************************************************************************/
+/*                                                                        */
+/*       Copyright (c) Microsoft Corporation. All rights reserved.        */
+/*                                                                        */
+/**************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <tx_api.h>
 #include <nx_api.h>
 #include <nx_secure_tls_api.h>
 #include <nxd_mqtt_client.h>
@@ -15,15 +14,15 @@
 //
 
 #ifndef HOST_NAME
-#define HOST_NAME "TestHubLiya.azure-devices.net"
+#define HOST_NAME ""
 #endif /* HOST_NAME */
 
 #ifndef DEVICE_ID
-#define DEVICE_ID "AZURERTOS-Device"
+#define DEVICE_ID ""
 #endif /* DEVICE_ID */
 
 #ifndef DEVICE_SAS
-#define DEVICE_SAS "SharedAccessSignature sr=TestHubLiya.azure-devices.net%2Fdevices%2FAZURERTOS-Device&sig=YnlBhUEepah9n5ZpmwTrp6PX0Uw3x6Pg8JoeI7Y4yOI%3D&se=1588926380"
+#define DEVICE_SAS ""
 #endif /* DEVICE_SAS */
 
 //
@@ -150,10 +149,6 @@ static UINT mqtt_message_length;
 static UINT fan_on = NX_FALSE;
 static UINT temperature = 20;
 
-void thread_sleep(unsigned int);
-VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr);
-extern void platform_deinit(void);
-
 /* Process command.  */
 static VOID my_notify_func(NXD_MQTT_CLIENT *client_ptr, UINT number_of_messages)
 {
@@ -211,7 +206,7 @@ static UINT threadx_mqtt_tls_setup(NXD_MQTT_CLIENT *client_ptr, NX_SECURE_TLS_SE
   return (NX_SUCCESS);
 }
 
-VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
+VOID sample_entry(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
 {
   UINT status;
   UINT time_counter = 0;
@@ -304,9 +299,11 @@ VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
   /* Loop to send publish message and wait for command.  */
   while (1)
   {
+
     /* Send publish message every five seconds.  */
     if ((time_counter % 5) == 0)
     {
+
       /* Check if turn fan on.  */
       if (fan_on == NX_FALSE)
       {
@@ -336,28 +333,9 @@ VOID mqtt_iothub_run(NX_IP *ip_ptr, NX_PACKET_POOL *pool_ptr, NX_DNS *dns_ptr)
     }
 
     /* Sleep 1s.  */
-    thread_sleep(1000);
+    tx_thread_sleep(100);
 
     /* Update the counter.  */
     time_counter++;
   }
-
-  /* Deinit platform.  */
-  platform_deinit();
-}
-
-/* Process the thread sleep functionality of the SDK.  */
-
-void thread_sleep(unsigned int milliseconds)
-{
-  UINT ticks;
-
-  /* Change milliseconds to ticks.  */
-  ticks = (milliseconds * TX_TIMER_TICKS_PER_SECOND) / 1000;
-
-  /* Check if ticks is zero.  */
-  if (ticks == 0)
-    ticks = 1;
-
-  tx_thread_sleep(ticks);
 }
