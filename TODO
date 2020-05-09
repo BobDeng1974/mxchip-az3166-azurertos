@@ -1,3 +1,4 @@
 - [x] Make WiFi work
 - [x] Printf output in COM / Debug Console
-- [ ] Add MQTT code that connects to IoT Hub
+- [x] Add MQTT connecting to IoT Hub sample
+- [ ] Add Embedded C SDK connecting to IoT Hub sample
